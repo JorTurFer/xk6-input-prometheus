@@ -7,37 +7,38 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestQueryScalar(t *testing.T) {
+func TestQuery(t *testing.T) {
 	module := prometheus.Prometheus{}
 	client := module.NewPrometheusClient("http://demo.robustperception.io:9090", "", "")
 
-	result, err := client.QueryScalar("up")
+	response, err := client.Query("up")
 	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, result, int64(1))
+	assert.NotEmpty(t, response.String())
 }
 
-func TestQueryScalarWithOperation(t *testing.T) {
+func TestQueryWithOperation(t *testing.T) {
 	module := prometheus.Prometheus{}
 	client := module.NewPrometheusClient("http://demo.robustperception.io:9090", "", "")
 
-	result, err := client.QueryScalar("sum(alertmanager_notifications_total)")
+	response, err := client.Query("sum(alertmanager_notifications_total)")
 	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, result, int64(1))
+	assert.NotEmpty(t, response.String())
 }
 
-func TestQueryScalarWithBasicAuth(t *testing.T) {
+func TestQueryWithBasicAuth(t *testing.T) {
 	module := prometheus.Prometheus{}
 	client := module.NewPrometheusClient("http://demo.robustperception.io:9090", "test", "1234")
 
-	result, err := client.QueryScalar("sum(alertmanager_notifications_total)")
+	response, err := client.Query("sum(alertmanager_notifications_total)")
 	assert.NoError(t, err)
-	assert.GreaterOrEqual(t, result, int64(1))
+	assert.NotEmpty(t, response.String())
 }
 
 func TestQueryScalarWithError(t *testing.T) {
 	module := prometheus.Prometheus{}
 	client := module.NewPrometheusClient("http://demo.robustperception.io:9090", "test", "1234")
 
-	_, err := client.QueryScalar("sum(random_metric)")
-	assert.Error(t, err)
+	response, err := client.Query("random_metrics")
+	assert.NoError(t, err)
+	assert.Empty(t, response.String())
 }
