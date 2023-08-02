@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/JorTurFer/xk6-input-prometheus/utils"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/config"
@@ -45,17 +46,28 @@ func (c *Client) Query(query string) (model.Value, error) {
 		return nil, err
 	}
 
-	// value := 0
-	// switch obj := result.(type) {
-	// case model.Vector:
-	// 	if obj.Len() == 0 {
-	// 		return -1, errors.New("empty vector")
-	// 	}
-	// 	sample := obj[len(obj)-1]
-	// 	value = int(sample.Value)
-	// case *model.Scalar:
-	// 	value = int(obj.Value)
-	// }
+	return result, nil
+}
+
+func (c *Client) QueryRange(query, start, end, period string) (model.Value, error) {
+	client, err := c.generateClient()
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := utils.ParseRange(start, end, period)
+	if err != nil {
+		return nil, err
+	}
+	v1api := v1.NewAPI(client)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	result, warnings, err := v1api.QueryRange(ctx, query, r, v1.WithTimeout(5*time.Second))
+	if err != nil || len(warnings) > 0 {
+		return nil, err
+	}
+
 	return result, nil
 }
 
