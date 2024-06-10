@@ -100,7 +100,6 @@ func TestParseRange(t *testing.T) {
 				assert.Error(t, err)
 				assert.EqualError(t, err, tc.Error)
 			}
-
 		})
 	}
 }
